@@ -30,11 +30,24 @@ for i in range(enemies_number):
     enemyMoveX.append(2)
     enemyMoveY.append(50)
 
+bullets_number = 10
 bulletIcon = pygame.image.load("eggs.png")
 bulletSize = bulletIcon.get_size()
-bulletX, bulletY = 0, playerY
-bulletMoveY = 5
-bulletState = 'rdy'
+
+bulletX = []
+bulletY = []
+bulletMoveY = []
+bulletState = []
+
+for i in range(bullets_number):
+    bulletX.append(0)
+    bulletY.append(playerY)
+    bulletMoveY.append(5)
+    bulletState.append("rdy")
+
+# bulletX, bulletY = 0, playerY
+# bulletMoveY = 5
+# bulletState = 'rdy'
 
 deadIcon = pygame.image.load("surprise.png")
 
@@ -57,10 +70,10 @@ def player(x, y):
     win.blit(playerIcon, (x, y))
 
 
-def bullet(x, y):
+def bullet(x, y, i):
     global bulletState
-    bulletState = 'fired'
-    win.blit(bulletIcon, (x + playerSize[0] / 2 - bulletSize[0] / 2, y - bulletSize[1]))
+    bulletState[i] = 'fired'
+    win.blit(bulletIcon, (x[i] + playerSize[0] / 2 - bulletSize[0] / 2, y[i] - bulletSize[1]))
 
 
 def deadPlayer(x, y):
@@ -107,10 +120,12 @@ while running:
                 playerMoveX = 3
             if event.key == pygame.K_LEFT:
                 playerMoveX = -3
-            if event.key == pygame.K_SPACE:
-                if bulletState == "rdy":
-                    bulletX = playerX
-                    bullet(bulletX, bulletY)
+            for i in range(bullets_number):
+                if event.key == pygame.K_SPACE:
+                    if bulletState[i] == "rdy":
+                        bulletX[i] = playerX
+                        bullet(bulletX, bulletY, i)
+                        break
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_RIGHT or event.key == pygame.K_LEFT:
                 playerMoveX = 0
@@ -119,12 +134,13 @@ while running:
         playerX = 0
     elif playerX >= width - playerSize[0]:
         playerX = width - playerSize[0]
-    if bulletState == "fired":
-        bullet(bulletX, bulletY)
-        bulletY -= bulletMoveY
-    if bulletY <= 0 - bulletSize[1]:
-        bulletY = playerY
-        bulletState = "rdy"
+    for i in range(bullets_number):
+        if bulletState[i] == "fired":
+            bullet(bulletX, bulletY, i)
+            bulletY[i] -= bulletMoveY[i]
+        if bulletY[i] <= 0 - bulletSize[1]:
+            bulletY[i] = playerY
+            bulletState[i] = "rdy"
     for i in range(enemies_number):
         enemy(enemyX, enemyY, i)
         enemyX[i] += enemyMoveX[i]
@@ -134,20 +150,21 @@ while running:
         elif enemyX[i] >= width - enemySize[0]:
             enemyMoveX[i] *= -1
             enemyY[i] += enemyMoveY[i]
-        collision = isCollision(bulletX, bulletY, enemyX[i], enemyY[i])
-        if collision:
-            bulletY = playerY
-            bulletState = 'rdy'
-            enemyX[i] = random.randint(0, width - enemySize[0])
-            enemyY[i] = random.randint(50, 150)
-            score += 1
+        for j in range(bullets_number):
+            collision = isCollision(bulletX[j], bulletY[j], enemyX[i], enemyY[i])
+            if collision:
+                bulletY[j] = playerY
+                bulletState[j] = 'rdy'
+                enemyX[i] = random.randint(0, width - enemySize[0])
+                enemyY[i] = random.randint(50, 150)
+                score += 1
         if enemyY[i] + enemySize[1] > playerY:
             game_over_text(width / 2, height / 2)
             isAlive = False
             deadPlayer(playerX, playerY)
-            for j in range(enemies_number):
-                enemyMoveX[j] = 0
-                enemyMoveY[j] = 0
-                enemyY[j] = 1000
+            for k in range(enemies_number):
+                enemyMoveX[k] = 0
+                enemyMoveY[k] = 0
+                enemyY[k] = 1000
     show_score(10, 10)
     pygame.display.update()
